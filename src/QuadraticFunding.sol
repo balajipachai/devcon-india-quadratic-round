@@ -165,6 +165,9 @@ contract QuadraticFunding is ReentrancyGuard {
 
     /// @notice The part of the score that comes from breadth: score minus what was actually contributed.
     ///         One contributor alone gives zero; many contributors give a lot. This is what the pool is split by.
+    /// @dev    This is the capital-constrained quadratic-funding rule (Buterin, Hitzig & Weyl): each project is
+    ///         matched by its subsidy, and `finalize()` scales every subsidy by `pool / sum of all subsidies`,
+    ///         so matches never exceed the pool. With one contributor the subsidy is zero.
     function matchWeight(uint256 projectId) public view returns (uint256) {
         uint256 score = quadraticScore(projectId);
         uint256 raised = _projects[projectId].raised;

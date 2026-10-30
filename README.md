@@ -22,6 +22,12 @@ Hand-worked (also a unit test): pool 84 ETH. Project A has 4 backers giving 1 ET
 **12**. Project B has 9 backers giving 1 ETH each: score 81, bonus 81 − 9 = **72**. Bonuses total 84, so A gets
 **12 ETH** and B gets **72 ETH**. A lone 100 ETH backer on a third project would get a bonus of 0.
 
+**Why the bonus and not the raw score.** The capital-constrained variant of quadratic funding in Buterin, Hitzig & Weyl
+matches each project by the *subsidy* quadratic funding adds on top of what people gave, then scales those subsidies down
+to fit a fixed pool. Scaling by raw scores would let one large cheque draw matching money that its own size already
+covers. Here every match is still `pool × weight ÷ sum of all weights`, so the total never exceeds the pool; the weight is
+score minus contributions rather than the score itself.
+
 Square roots are integer math: `Math.sqrt(total × 1e18)` (OpenZeppelin, rounded down), so a few wei of precision is not
 lost to a root of a small number. Scores are divided back by 1e18.
 
