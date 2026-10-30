@@ -21,3 +21,5 @@ docs/
 
 # Keep only run-latest.json of a real deployment; timestamped copies are noise
 /broadcast/*/*/run-[0-9]*.json
+
+node_modules/

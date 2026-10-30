@@ -1,0 +1,6 @@
+{
+  "name": "quadratic-round-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": { "viem": "2.21.54" }
+}
