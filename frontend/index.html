@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community funding round</title>
+<style>
+  :root { --bg:#faf7f2; --card:#fff; --ink:#1d1b16; --muted:#6b665c; --line:#e6e0d4; --accent:#1f6f5c; --accent-ink:#fff;
+          --ok:#1f6f5c; --bad:#a32a2a; --warn:#a15c00; --track:#ebe5d8; --soft:#f3efe6; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14130f; --card:#1e1c17; --ink:#f1ede3; --muted:#a29c8d; --line:#34312a;
+          --accent:#4fb89c; --accent-ink:#0c1512; --ok:#4fb89c; --bad:#e57373; --warn:#e0a24a; --track:#2c2a23; --soft:#27251f; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:20px 16px 56px; }
+  h1 { font-size:1.45rem; line-height:1.25; margin:0 0 4px; } h2 { font-size:1.1rem; margin:28px 0 10px; }
+  .sub { color:var(--muted); margin:0 0 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .banner { border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; font-weight:600; background:var(--card); }
+  .banner small { display:block; font-weight:400; color:var(--muted); margin-top:3px; }
+  .banner.ok { border-color:var(--ok); } .banner.wait { border-color:var(--warn); } .banner.bad { border-color:var(--bad); }
+  .stats { display:flex; flex-wrap:wrap; gap:16px; } .stat b { display:block; font-size:1.35rem; } .stat span { color:var(--muted); font-size:.9rem; }
+  .proj h3 { margin:0; font-size:1.05rem; } .recip { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace; }
+  .big { font-size:1.6rem; font-weight:700; line-height:1.15; margin:8px 0 2px; } .big small { font-size:.9rem; font-weight:400; color:var(--muted); }
+  .bar { height:10px; background:var(--track); border-radius:99px; overflow:hidden; margin:6px 0; } .bar>div { height:100%; background:var(--accent); }
+  .row { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:.92rem; }
+  details { margin-top:10px; border-top:1px solid var(--line); padding-top:10px; } summary { cursor:pointer; font-weight:600; }
+  ol.steps { margin:10px 0 0; padding-left:20px; } ol.steps li { margin-bottom:8px; } ol.steps b { color:var(--ink); }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin-top:6px; } th,td { text-align:right; padding:5px 4px; border-bottom:1px solid var(--line); }
+  th:first-child,td:first-child { text-align:left; font-family:ui-monospace,Menlo,monospace; } th { color:var(--muted); font-weight:500; }
+  .check { margin-top:10px; padding:8px 10px; border-radius:8px; background:var(--soft); font-size:.9rem; } .check.good { color:var(--ok); } .check.badc { color:var(--bad); }
+  label { display:block; font-weight:600; margin:10px 0 4px; } select,input { width:100%; font:inherit; padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); }
+  button { font:inherit; font-weight:600; padding:11px 16px; border-radius:10px; border:0; cursor:pointer; background:var(--accent); color:var(--accent-ink); min-height:46px; }
+  button.ghost { background:transparent; color:var(--ink); border:1px solid var(--line); } button.full { width:100%; margin-top:12px; } button:disabled { opacity:.5; cursor:not-allowed; }
+  .msg { margin-top:8px; font-size:.92rem; min-height:1.3em; } .msg.err { color:var(--bad); } .msg.good { color:var(--ok); }
+  .mono { font-family:ui-monospace,Menlo,monospace; font-size:.85rem; word-break:break-all; } a { color:var(--accent); } [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Community funding round</h1>
+  <p class="sub">Many small backers beat one big cheque. Every number below can be checked from the blockchain.</p>
+
+  <div id="setup" class="banner wait" hidden>This page isn't connected to a round yet.<small>Run <span class="mono">script/deploy.sh</span>, which writes <span class="mono">frontend/deployment.json</span>.</small></div>
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="card" id="poolCard" hidden>
+    <div class="stats">
+      <div class="stat"><b id="poolEth">–</b><span>matching pool</span></div>
+      <div class="stat"><b id="raisedEth">–</b><span>contributed by the community</span></div>
+      <div class="stat"><b id="backers">–</b><span>supporters (a person counts once per project)</span></div>
+    </div>
+    <div class="row" style="margin-top:10px"><span id="timeInfo"></span><span id="remainder"></span></div>
+  </section>
+
+  <div id="actions"></div>
+
+  <h2 id="projectsHeading" hidden>Projects and how each match was worked out</h2>
+  <div id="projects"></div>
+
+  <section class="card" id="howCard" hidden>
+    <b>How the match works</b>
+    <ol class="steps">
+      <li>Each person's total to a project counts once, however many times they gave.</li>
+      <li>Take the square root of each person's total, add the roots up, then square the sum. That is the project's <b>score</b>.</li>
+      <li>The part of the score above what people actually gave is the <b>breadth bonus</b>. One big backer adds nothing to it, many small backers add a lot.</li>
+      <li>The matching pool is shared out in proportion to each project's breadth bonus.</li>
+    </ol>
+  </section>
+
+  <p class="sub" id="foot"></p>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+import { createPublicClient, createWalletClient, custom, http, defineChain, parseAbi, parseAbiItem, formatEther, parseEther, getAddress }
+  from "https://esm.sh/viem@2.21.54";
+
+const R = window.ROUND, $ = (id) => document.getElementById(id);
+const abi = parseAbi([
+  "function roundStart() view returns (uint256)", "function roundEnd() view returns (uint256)",
+  "function matchingPool() view returns (uint256)", "function totalMatched() view returns (uint256)",
+  "function finalized() view returns (bool)", "function projectCount() view returns (uint256)",
+  "function getProject(uint256) view returns ((address recipient,string name,uint256 raised,uint256 contributors,uint256 sumSqrt,uint256 matchAmount,bool withdrawn))",
+  "function quadraticScore(uint256) view returns (uint256)", "function matchWeight(uint256) view returns (uint256)",
+  "function totalMatchWeight() view returns (uint256)", "function unallocated() view returns (uint256)",
+  "function isEligible(address,bytes32[]) view returns (bool)",
+  "function contribute(uint256,bytes32[]) payable", "function finalize()", "function withdraw(uint256)",
+  "error NotEligible()", "error RoundNotStarted()", "error RoundEnded()", "error RoundNotEnded()", "error ZeroAmount()",
+  "error AlreadyFinalized()", "error NotFinalized()", "error AlreadyWithdrawn()", "error UnknownProject()", "error TransferFailed()",
+]);
+const contributedEvent = parseAbiItem("event Contributed(uint256 indexed projectId, address indexed contributor, uint256 amount)");
+const SCALE = 10n ** 18n;
+const PLAIN = {
+  NotEligible: "This wallet isn't on the community list, so it can't contribute.",
+  RoundNotStarted: "The round hasn't started yet.", RoundEnded: "The round has closed, so contributions are over.",
+  RoundNotEnded: "The round is still open. Results can be locked in once it closes.", ZeroAmount: "Enter an amount greater than zero.",
+  AlreadyFinalized: "Results are already locked in.", NotFinalized: "Results aren't locked in yet.",
+  AlreadyWithdrawn: "This project has already been paid.",
+};
+function explain(e) {
+  const name = e?.walk?.((x) => x?.data?.errorName)?.data?.errorName;
+  if (name && PLAIN[name]) return PLAIN[name];
+  if (/user rejected|denied/i.test(e?.message || "")) return "You cancelled the request in your wallet.";
+  if (/insufficient funds/i.test(e?.message || "")) return "Your wallet doesn't have enough ETH for this plus network fees.";
+  return "Something went wrong. Nothing was sent. Please try again.";
+}
+const eth = (w) => { const n = Number(formatEther(w)); const s = n >= 100 ? n.toFixed(2) : n >= 1 ? n.toFixed(3) : n.toFixed(4); return s.replace(/\.?0+$/, "") + " ETH"; };
+const roots = (w) => { const n = Number(formatEther(w)); return n.toFixed(3).replace(/\.?0+$/, ""); };
+const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+function isqrt(n) { if (n < 2n) return n; let x = n, y = (x + 1n) / 2n; while (y < x) { x = y; y = (x + n / x) / 2n; } return x; }
+function left(sec) { if (sec <= 0) return "0m"; const d = Math.floor(sec/86400), h = Math.floor(sec%86400/3600), m = Math.floor(sec%3600/60); return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${Math.max(m,1)}m`; }
+
+$("title").textContent = R.title; document.title = R.title;
+let dep, allow = {};
+try { dep = await (await fetch("deployment.json", { cache: "no-store" })).json(); } catch { /* not deployed */ }
+if (!dep?.address) { $("setup").hidden = false; throw new Error("no deployment.json"); }
+try { allow = (await (await fetch("allowlist.json", { cache: "no-store" })).json()).proofs || {}; } catch {}
+const allowLower = Object.fromEntries(Object.entries(allow).map(([k, v]) => [k.toLowerCase(), v]));
+
+const chain = defineChain({ id: dep.chainId, name: R.chainName, nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, rpcUrls: { default: { http: [R.rpcUrl] } } });
+const pub = createPublicClient({ chain, transport: http(R.rpcUrl) });
+const C = dep.address;
+const read = (functionName, args) => pub.readContract({ address: C, abi, functionName, args });
+let wallet = null, account = null, terms = null, chainNow = 0;
+
+async function fetchEvents() {
+  const latest = await pub.getBlockNumber(), out = [];
+  for (let from = BigInt(dep.deployBlock); from <= latest; from += 40000n) {
+    const to = from + 39999n > latest ? latest : from + 39999n;
+    out.push(...await pub.getLogs({ address: C, event: contributedEvent, fromBlock: from, toBlock: to }));
+  }
+  return out;
+}
+
+async function refresh() {
+  try {
+    if (!terms) terms = { start: Number(await read("roundStart")), end: Number(await read("roundEnd")) };
+    const [pool, finalized, count, events, unalloc, block] = await Promise.all([
+      read("matchingPool"), read("finalized"), read("projectCount"), fetchEvents(), read("unallocated"), pub.getBlock(),
+    ]);
+    // The contract judges time by block timestamps, not by this browser's clock. The newest block can be
+    // a few seconds old, so take the later of the two to avoid showing a stale phase.
+    chainNow = Math.max(Number(block.timestamp), Math.floor(Date.now() / 1000));
+    const ids = [...Array(Number(count)).keys()];
+    const projects = await Promise.all(ids.map(async (i) => ({
+      id: i, p: await read("getProject", [BigInt(i)]), score: await read("quadraticScore", [BigInt(i)]), weight: await read("matchWeight", [BigInt(i)]),
+    })));
+    render({ pool, finalized, projects, events, unalloc });
+  } catch (e) {
+    console.error(e); $("banner").hidden = false; $("banner").className = "banner wait";
+    $("banner").innerHTML = "Couldn't reach the round. <small>Check your connection; this page retries automatically.</small>";
+  }
+}
+
+function breakdown(events, id) {
+  const totals = new Map();
+  for (const l of events) if (Number(l.args.projectId) === id) totals.set(l.args.contributor, (totals.get(l.args.contributor) || 0n) + l.args.amount);
+  const rows = [...totals].map(([who, total]) => ({ who, total, root: isqrt(total * SCALE) })).sort((a, b) => (b.total > a.total ? 1 : -1));
+  const sum = rows.reduce((s, r) => s + r.root, 0n), raised = rows.reduce((s, r) => s + r.total, 0n);
+  return { rows, sum, raised, score: (sum * sum) / SCALE };
+}
+
+function render({ pool, finalized, projects, events, unalloc }) {
+  const now = chainNow, phase = finalized ? "final" : now < terms.start ? "soon" : now <= terms.end ? "open" : "closed";
+  const totalWeight = projects.reduce((s, x) => s + x.weight, 0n);
+  const projected = (x) => (finalized ? x.p.matchAmount : totalWeight > 0n ? (pool * x.weight) / totalWeight : 0n);
+  const raisedAll = projects.reduce((s, x) => s + x.p.raised, 0n);
+  const b = $("banner"); b.hidden = false;
+  const msgs = {
+    soon: ["wait", "Round opens soon", `Contributions open in ${left(terms.start - now)}. The projects and the matching pool are already fixed.`],
+    open: ["", "The round is open", `${left(terms.end - now)} left. Only people on the community list can contribute.`],
+    closed: ["wait", "Round closed: results ready to lock in", "Anyone can press “Lock in results” below. After that each project can be paid."],
+    final: ["ok", "Results are final", "Every project's match is fixed on-chain. Open any project below to check the working."],
+  }[phase];
+  b.className = "banner " + msgs[0]; b.innerHTML = `${msgs[1]}<small>${msgs[2]}</small>`;
+  for (const id of ["poolCard", "howCard"]) $(id).hidden = false; $("projectsHeading").hidden = false;
+  $("poolEth").textContent = eth(pool); $("raisedEth").textContent = eth(raisedAll);
+  $("backers").textContent = String(projects.reduce((s, x) => s + Number(x.p.contributors), 0));
+  $("timeInfo").textContent = phase === "open" ? `${left(terms.end - now)} left` : phase === "soon" ? `starts in ${left(terms.start - now)}` : "round closed";
+  $("remainder").textContent = finalized && unalloc > 0n ? (unalloc < 10n ** 12n ? `${unalloc} wei of rounding left in the pool` : `${eth(unalloc)} left in the pool (no project had a breadth bonus to share it)`) : "";
+
+  $("projects").innerHTML = projects.map((x) => {
+    const bd = breakdown(events, x.id), m = projected(x), pct = totalWeight > 0n ? Number((x.weight * 10000n) / totalWeight) / 100 : 0;
+    const okMath = bd.score === x.score && bd.raised === x.p.raised;
+    const rowsHtml = bd.rows.map((r) => `<tr><td>${short(r.who)}</td><td>${eth(r.total)}</td><td>${roots(r.root)}</td></tr>`).join("") || `<tr><td colspan="3" style="text-align:left;font-family:inherit">No contributions yet</td></tr>`;
+    return `<section class="card proj">
+      <h3>${esc(x.p.name)}</h3><div class="recip">${short(x.p.recipient)}</div>
+      <div class="big">${eth(x.p.raised + m)} <small>${finalized ? "total payout" : "payout if the round ended now"}</small></div>
+      <div class="row"><span>${eth(x.p.raised)} from ${x.p.contributors} ${Number(x.p.contributors) === 1 ? "person" : "people"}</span><span>+ ${eth(m)} match</span></div>
+      <div class="bar" title="share of the matching pool"><div style="width:${Math.min(100, pct)}%"></div></div>
+      <div class="row"><span>${pct.toFixed(1)}% of the matching pool</span><span>${x.p.withdrawn ? "paid out" : finalized ? "ready to be paid" : ""}</span></div>
+      <details><summary>Check the math</summary>
+        <ol class="steps">
+          <li><b>${x.p.contributors} ${Number(x.p.contributors) === 1 ? "person" : "people"}</b> gave a combined <b>${eth(bd.raised)}</b>. Gifts from the same person are added together first.</li>
+          <li>Square root of each person's total, in √ETH:
+            <table><tr><th>wallet</th><th>gave</th><th>√ of it</th></tr>${rowsHtml}</table></li>
+          <li>Add the roots: <b>${roots(bd.sum)}</b>. Square it: <b>${eth(bd.score)}</b> is the project's score.</li>
+          <li>Take away what people actually gave (${eth(bd.raised)}). The <b>${eth(bd.score > bd.raised ? bd.score - bd.raised : 0n)}</b> left is the breadth bonus.</li>
+          <li>Breadth bonuses across all projects add up to ${eth(totalWeight)}. This project holds <b>${pct.toFixed(2)}%</b> of that, so it gets that share of the ${eth(pool)} pool: <b>${eth(m)}</b>.</li>
+        </ol>
+        <div class="check ${okMath ? "good" : "badc"}">${okMath ? `✓ Recomputed in your browser from ${bd.rows.length} on-chain contribution${bd.rows.length === 1 ? "" : "s"}; it matches the contract's own score.` : "✗ The page's recalculation differs from the contract. Please report this."}</div>
+      </details>
+      ${finalized && !x.p.withdrawn ? `<button class="ghost full" data-withdraw="${x.id}">Pay this project</button><div class="msg" id="w${x.id}"></div>` : ""}
+    </section>`;
+  }).join("");
+  for (const btn of document.querySelectorAll("[data-withdraw]")) btn.onclick = () => act($("w" + btn.dataset.withdraw), () => send("withdraw", [BigInt(btn.dataset.withdraw)]));
+
+  const proof = account ? allowLower[account.toLowerCase()] : null;
+  let html = "";
+  if (phase === "open") {
+    html = `<section class="card"><b>Contribute</b>
+      ${!account ? `<button class="full" id="connect">Connect wallet</button><div class="msg" id="cmsg"></div>` :
+        proof ? `<label for="pid">Project</label><select id="pid">${projects.map((x) => `<option value="${x.id}">${esc(x.p.name)}</option>`).join("")}</select>
+          <label for="amt">Amount (ETH)</label><input id="amt" inputmode="decimal" placeholder="0.05" autocomplete="off">
+          <button class="full" id="give">Contribute</button><div class="msg" id="cmsg">Connected as ${short(account)}.</div>` :
+        `<div class="msg err" id="cmsg">${short(account)} isn't on the community list, so it can't contribute. Only people from the Road to Devcon events can.</div>`}
+      </section>`;
+  } else if (phase === "closed") {
+    html = `<section class="card"><b>The round is over</b><button class="full" id="fin">Lock in results</button><div class="msg" id="fmsg"></div></section>`;
+  }
+  $("actions").innerHTML = html;
+  if ($("connect")) $("connect").onclick = connect;
+  if ($("give")) $("give").onclick = () => act($("cmsg"), async () => {
+    let value; try { value = parseEther($("amt").value.trim()); } catch { throw Object.assign(new Error("bad"), { friendly: "Enter an amount in ETH, like 0.05." }); }
+    if (value <= 0n) throw Object.assign(new Error("zero"), { friendly: PLAIN.ZeroAmount });
+    return send("contribute", [BigInt($("pid").value), proof], value);
+  });
+  if ($("fin")) $("fin").onclick = () => act($("fmsg"), () => send("finalize", []));
+  $("foot").innerHTML = `Contract <a class="mono" href="${R.explorer}/address/${C}" target="_blank" rel="noopener">${short(C)}</a> on ${R.chainName}.`;
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function connect() {
+  try {
+    if (!window.ethereum) throw Object.assign(new Error("no wallet"), { friendly: "Open this page in your wallet's browser (MetaMask, Rainbow, Coinbase Wallet…)." });
+    wallet = createWalletClient({ chain, transport: custom(window.ethereum) });
+    [account] = await wallet.requestAddresses();
+    try { await wallet.switchChain({ id: dep.chainId }); } catch {}
+    await refresh();
+  } catch (e) { const m = $("cmsg") || $("fmsg"); if (m) { m.className = "msg err"; m.textContent = e.friendly || explain(e); } }
+}
+// Dry-run first so contract errors come back decoded and readable, then ask the wallet to sign.
+async function send(functionName, args, value) {
+  await pub.simulateContract({ address: C, abi, functionName, args, account, value });
+  return wallet.writeContract({ address: C, abi, functionName, args, account, value });
+}
+async function act(el, fn) {
+  // `connect()` re-renders the page, which replaces this message element, so look it up by id each time.
+  const id = el.id, msg = () => document.getElementById(id) || el;
+  msg().className = "msg"; msg().textContent = "Confirm in your wallet…";
+  try {
+    if (!account) await connect();
+    if (!account) return;
+    const hash = await fn(); msg().textContent = "Sent. Waiting for confirmation…";
+    const receipt = await pub.waitForTransactionReceipt({ hash });
+    if (receipt.status !== "success") throw Object.assign(new Error("reverted"), { friendly: "The transaction failed on the network, so nothing changed. Please try again." });
+    await refresh(); msg().className = "msg good"; msg().textContent = "Done!";
+  } catch (e) { console.error(e); msg().className = "msg err"; msg().textContent = e.friendly || explain(e); }
+}
+if (window.ethereum?.on) window.ethereum.on("accountsChanged", () => location.reload());
+await refresh(); setInterval(refresh, 15000);
+</script>
+</body>
+</html>
