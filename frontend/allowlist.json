@@ -1,0 +1,18 @@
+{
+  "contract": "0x3dc7fE1a22FdfB46aCee41ecE346fD5EDc24eE2B",
+  "root": "0x5d7677caf7d186bf095f3736a37a67ef95aa97c76c364aac2df33bca6cda4712",
+  "members": 3,
+  "proofs": {
+    "0x6ec052b349208dBaf47093CBE669B4801c70EE2c": [
+      "0x06c530452bd0fb216d837e6510e3e3774491f4d75515805f82827724e30ce4c4",
+      "0x4dae68f97ed052bfbcbfb475b321f5877beaef3bcc0826a5eeb93390fadcc980"
+    ],
+    "0x45172cDB07a47C5aaB4741cB4A81DB110D01bd89": [
+      "0x6fb453c63b268e31cfeb155fafaef59ef855274c07ec286ad5732ebaed2c36fd",
+      "0x4dae68f97ed052bfbcbfb475b321f5877beaef3bcc0826a5eeb93390fadcc980"
+    ],
+    "0xfAB94694ec2235c3A8c06824dA09f8627d5be30D": [
+      "0x34c572c5a2b3664085cc4cb55638357131dea67d59c16cbec51a0425b0160c20"
+    ]
+  }
+}

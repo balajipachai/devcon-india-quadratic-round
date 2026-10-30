@@ -76,7 +76,7 @@ Serve the page with any static host, e.g. `cd frontend && python3 -m http.server
 
 | Network | Address |
 |---------|---------|
-| Sepolia | _pending deployment_ |
+| Sepolia | [`0x3dc7fe1a22fdfb46acee41ece346fd5edc24ee2b`](https://sepolia.etherscan.io/address/0x3dc7fe1a22fdfb46acee41ece346fd5edc24ee2b) (block 12027615; 3 projects, 0.01 ETH matching pool, round 1793376432 to 1793635632) |
 
 ## Verification performed
 
